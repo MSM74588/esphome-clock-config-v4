@@ -23,7 +23,7 @@ Note:
 
 more documentation: [esphome webserver web api](https://esphome.io/web-api/index.html)
 
-note: - see the max suffix, so one single firmware can be used for all devices
+note: - see the mac suffix, so one single firmware can be used for all devices
 ```yaml
 esphome:
   name: "${name}"

@@ -29,7 +29,7 @@ esphome:
           value: 'true'
 
 dashboard_import:
-  package_import_url: github://msm74588/esphome-clock-config-v4/clock_template.yaml@main
+  package_import_url: github://MSM74588/esphome-clock-config-v4/clock_template.yaml@main
 
 esp32:
   board: esp32dev

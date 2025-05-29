@@ -43,3 +43,17 @@ esphome:
 > [!NOTE]
 > When you connect to the fallback network, the web interface should open automatically (see also login to network notifications).
 > If that does not work, you can also navigate to http://192.168.4.1/ manually in your browser.
+
+## Instruction to connect to a new HA instance
+For freshly installed device:
+
+### Via Wifi
+- Connect to the Fallback Network
+- Go to `192.168.4.1` -> give wifi credentials
+- Go to `esphome` dashboard > Discovered device > reconfigure the device > Add the encryption key to the config under `api` section
+- Go to `HA > Devices` > Reconfigure > Done.
+
+### Via Serial ([esphome web](https://web.esphome.io/))
+- Connect via USB-Serial (via a chrome based browser)
+- On linux may need to give permission to the usb device, by adding the `user` to `uucp` group (generally /usb/ttyACM0)
+- Connect > then 3 dots > `Configure Wi-fi`

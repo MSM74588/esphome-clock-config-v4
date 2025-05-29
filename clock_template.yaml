@@ -11,7 +11,7 @@ esphome:
   # configuration and updates.
   
   project:
-    name: esphome.project-template
+    name: msm74588.matrix_clock-v4
     version: "1.0"
   on_boot:
     # Set a high priority to ensure this runs very early
@@ -27,6 +27,9 @@ esphome:
       - globals.set:
           id: clock_display_enabled
           value: 'true'
+
+dashboard_import:
+  package_import_url: github://msm74588/esphome-clock-config-v4/clock_template.yaml@main
 
 esp32:
   board: esp32dev

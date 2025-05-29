@@ -38,3 +38,8 @@ esphome:
 ```
 
 - added `dashboard_import` to make the config shareable
+
+
+> [!NOTE]
+> When you connect to the fallback network, the web interface should open automatically (see also login to network notifications).
+> If that does not work, you can also navigate to http://192.168.4.1/ manually in your browser.

@@ -50,7 +50,7 @@ For freshly installed device:
 ### Via Wifi
 - Connect to the Fallback Network
 - Go to `192.168.4.1` -> give wifi credentials
-- Go to `esphome` dashboard > Discovered device > reconfigure the device > Add the encryption key to the config under `api` section
+- Go to `esphome` dashboard > Discovered device > configure the device > Copy/save the `API key` > install (will happen over wifi)
 - Go to `HA > Devices` > Reconfigure > Done.
 
 ### Via Serial ([esphome web](https://web.esphome.io/))

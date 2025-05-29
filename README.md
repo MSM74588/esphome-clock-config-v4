@@ -9,8 +9,11 @@ esphome configuration for max7219 matrix clock.
 - platform: `esp-idf`
 
 ## How to use the web server API?
+
 Turn off clock display: `curl -X POST 'http://192.168.0.100/switch/keep_clock_on/turn_off'`
+
 Turn on clock display: `curl -X POST 'http://192.168.0.100/switch/keep_clock_on/turn_on'`
+
 Set Brightness level: `curl -X GET 'http://192.168.0.100/switch/show_display_text/'`
 
 Note:

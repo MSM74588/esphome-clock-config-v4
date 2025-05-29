@@ -1,0 +1,210 @@
+substitutions:
+  name: "matrix-clock-v4"
+  friendly_name: "Matrix Clock v4"
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+
+  name_add_mac_suffix: true
+    # This will allow for (future) project identification,
+  # configuration and updates.
+  
+  project:
+    name: esphome.project-template
+    version: "1.0"
+  on_boot:
+    # Set a high priority to ensure this runs very early
+    priority: 100
+    then:
+      # Explicitly turn on the display on boot.
+      # This ensures it's ON regardless of the initial state of clock_display_enabled's restoration.
+      - lambda: id(matrix_display).turn_on_off(true);
+      
+      # Now, ensure the global variable *also* reflects that the clock display is enabled.
+      # This is important if `restore_value: yes` was used and the last state was OFF.
+      # If `restore_value: no`, initial_value will already make it true, but this doesn't hurt.
+      - globals.set:
+          id: clock_display_enabled
+          value: 'true'
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  level: ERROR
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+
+wifi:
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Matrix-Clock-V4 Fallback Hotspot"
+
+# Sets up Bluetooth LE (Only on ESP32) to allow the user
+# to provision wifi credentials to the device.
+esp32_improv:
+  authorizer: none
+
+captive_portal:
+
+web_server:
+  port: 80
+  local: True
+  version: 3
+
+globals:
+  - id: text_value
+    type: std::string
+    restore_value: no
+    initial_value: '"Hello World"'
+  
+  - id: clock_display_enabled
+    type: bool
+    restore_value: False
+    initial_value: 'true'
+
+  - id: is_keep_clock_ahead
+    type: bool
+    restore_value: False
+    initial_value: 'false'
+
+
+switch:
+  - platform: template
+    name: "Show Display Text"
+    id: show_text_switch
+    optimistic: true
+  
+  - platform: template
+    name: "Use Alternate Font"
+    id: alternate_font
+    optimistic: true
+  
+  - platform: template
+    name: "Keep Clock On"
+    id: clock_on_off
+    optimistic: true
+    # lambda: |-
+    #   return id(clock_display_enabled);
+    turn_on_action:
+      - lambda: |-
+          id(clock_display_enabled) = true;
+    turn_off_action:
+      - lambda: |-
+          id(clock_display_enabled) = false;
+
+  - platform: template
+    name: "Keep Clock Ahead 5 min?"
+    id: is_keep_clock_ahead_switch
+    optimistic: true
+    # lambda: |-
+    #   return id(clock_display_enabled);
+    turn_on_action:
+      - lambda: |-
+          id(is_keep_clock_ahead) = true;
+    turn_off_action:
+      - lambda: |-
+          id(is_keep_clock_ahead) = false;
+    
+
+
+font:
+  - file: fonts/MatrixChunky8X.ttf
+    id: default_font
+    glyphs: |-
+      %0123456789:.Sun MoTesWdhFriatAPJbpylgOcNvD
+
+  - file: fonts/MatrixLight8X.ttf
+    id: message_font
+    glyphs: |-
+      ! "#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz°₩₿
+
+  - file: "fonts/pixelmix.ttf"
+    id: message_font_2
+    size: 8
+
+time:
+  - platform: homeassistant
+    id: hass_time
+
+spi:
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+
+text:
+  - platform: template
+    name: "Display Text"
+    id: text_value_input
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - lambda: |-
+            id(text_value) = x;
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Matrix Clock IP Address"
+
+number:
+  - platform: template
+    name: "Display Brightness"
+    id: display_brightness
+    min_value: 0
+    max_value: 15
+    step: 1
+    initial_value: 3
+    optimistic: true
+    mode: slider
+
+
+display:
+  - platform: max7219digit
+    id: matrix_display
+    cs_pin: GPIO5
+    num_chips: 4
+    intensity: 3  # Initial fallback intensity
+    scroll_dwell:
+      seconds: 2
+    scroll_mode: STOP
+    update_interval: 1s
+    lambda: |-
+      // Turn display on or off based on the switch
+      it.turn_on_off(id(clock_display_enabled));
+
+      // Apply brightness dynamically
+      it.intensity((uint8_t)id(display_brightness).state);
+
+      auto now = id(hass_time).now();
+      // ESP_LOGD("custom", "Before offset: %lld", now.timestamp);
+
+      if (id(is_keep_clock_ahead)) {
+        now.timestamp += 300;  // Add 5 minutes
+        now = esphome::ESPTime::from_epoch_local(now.timestamp);  // Rebuild the struct
+        // ESP_LOGD("custom", "After offset: %lld", now.timestamp);
+      }
+
+      // Text display with spacing
+      if (id(show_text_switch).state) {
+        std::string text = id(text_value).c_str();
+        text += "   ";  // Add 3 space characters for visual gap
+
+        if (id(alternate_font).state) {
+          it.print(0, 0, id(message_font), text.c_str());
+        } else {
+          it.print(0, 0, id(message_font_2), text.c_str());
+        }
+      } 
+      else {
+        it.strftime((32 / 2), (8 / 2), id(default_font), TextAlign::CENTER, "%I:%M:%S", now);
+      }
